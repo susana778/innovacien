@@ -1,0 +1,196 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Snake Game</title>
+   <!-- Define las caracteristicas de diseÃ±o del la pÃ¡gina, usando CSS -->	
+  <style>
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+  p{
+      color:white;
+  }
+  .creditos{
+  margin-left:-100px;
+  margin-right:50px;
+  height:400;
+  padding-top:350px;
+  }
+  
+  body {
+    background:#b62525;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  canvas {
+    border: 4px solid blueviolet;
+	background-color:rgb(179, 203, 235);
+  }
+  .iconos, .logo, .soc{
+  background-color:black;
+  }
+  .soc {
+  margin-left:200px;
+  margin-right:50px;  </style>
+</head>
+<body>
+
+<header>Juega SNAKE-GAME, el juego legendario de nokia</header>
+<div>
+margin-left:100px;
+margin-right:50px;
+height:200;
+padding-top:350px;
+
+
+<div class "iconos" align="center">
+<div class="logo" align="center" width="90%" ><a href="http://innovacien.org" ><img src="memesnake.jpg" height="50px"></a></div>
+
+</div>
+<div class="creditos"> Trabajo modificado por curso HMLT5 Susana Castro </br> A partir del trabajo de  Steven Lambert 
+
+ </div>	
+  <!-- Define el Lienzo en que se desarrolla el Juego -->	
+
+<canvas width="800" height="800" id="game"></canvas>
+<script>
+var canvas = document.getElementById('game');
+var context = canvas.getContext('2d');
+var grid = 30;
+var count = 0;
+  
+var snake = {
+  x: 200,
+  y: 200,
+  
+  // define la velocidad segÃºn el eje x e y, indica cuanto avanza inicialmente la serpiente segÃºn los ejes x e y. 
+  dx: grid,
+  dy: 0,
+  
+  // mantiene el registro de las cuadriculas ocupadas por la serpiente
+  cells: [],
+  
+  // Longitud de la serpiente. Aumenta cuando se come la manzana
+  maxCells: 10
+};
+var apple = {
+  x: 220,
+  y: 120
+};
+// Entrega un nÃºmero aleatorio en un rango dado.
+// @see https://stackoverflow.com/a/1527820/2124254
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+// Ciclo de Juego
+function loop() {
+  requestAnimationFrame(loop);
+  // Ralentiza el bucle del juego a 15 cuadros por segundo, no 60. (60/15 = 4)
+  if (++count < 6) {
+    return;
+  }
+  count = 0;
+  context.clearRect(0,0,canvas.width,canvas.height);
+  // Mueve la serpiente, segÃºn su velocidad en x e y.
+  snake.x += snake.dx;
+  snake.y += snake.dy;
+  // Cuando la serpiente choca con un borde horizontal, se traslada al borde opuesto
+  if (snake.x < 0) {
+    snake.x = canvas.width - grid;
+  }
+  else if (snake.x >= canvas.width) {
+    snake.x = 0;
+  }
+  
+ // Cuando la serpiente choca con un borde vertical, se traslada al borde opuesto
+  if (snake.y < 0) {
+    snake.y = canvas.height - grid;
+  }
+  else if (snake.y >= canvas.height) {
+    snake.y = 0;
+  }
+  // Mantiene un registro de dÃ³nde ha estado la serpiente. Frente de la matriz es siempre la cabeza
+  snake.cells.unshift({x: snake.x, y: snake.y});
+  // Borra las cendas que indican posiciones que ya no ocupa la serpiente
+  if (snake.cells.length > snake.maxCells) {
+    snake.cells.pop();
+  }
+  // dibuja la manzana
+  context.fillStyle = 'red';
+  context.fillRect(apple.x, apple.y, grid-1, grid-1);
+  // Dibuja la serpiente una celda a la vez
+  context.fillStyle = 'green';
+  snake.cells.forEach(function(cell, index) {
+    
+    // Dibuja el cuerpo de la serpiente un pixel mas pequeÃ±o que el tamaÃ±o de las cuadriculas, de forma que se pueda apreciar el tamaÃ±o de la serpiente
+    context.fillRect(cell.x, cell.y, grid-1, grid-1);  
+    // Serpiente se come la manzana
+    if (cell.x === apple.x && cell.y === apple.y) {
+      snake.maxCells++;
+      // define la posiciÃ³n de la manzana en forma aleatoria
+      apple.x = getRandomInt(0, 25) * grid;
+      apple.y = getRandomInt(0, 25) * grid;
+    }
+    // Verifica colisiÃ³n entre celdas de la serpiente (metodo de la burbuja modificado)
+    for (var i = index + 1; i < snake.cells.length; i++) {
+      
+      // Si la serpiente choca con un punto de su cuerpo resetea el juego.
+      if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
+        snake.x = 160;
+        snake.y = 160;
+        snake.cells = [];
+        snake.maxCells = 4;
+        snake.dx = grid;
+        snake.dy = 0;
+        apple.x = getRandomInt(0, 25) * grid;
+        apple.y = getRandomInt(0, 25) * grid;
+      }
+    }
+  });
+}
+// "Escucha" el evento presionar teclas, que controla el juego
+document.addEventListener('keydown', function(e) {
+  // Previene que la serpiente no retroceda, revisando que 
+  // no estÃ© ya moviendose en el mismo eje (presionar izquierda, mientras se mueve a la 
+  // izquierda no afecta el juego, y presionar derecha mientras se mueve a la izquierda
+  // no permite que colisiones con su propio cuerpo   --- lo mismo respecto a "arriba" "abajo"  )
+  
+  // Presiona tecla "izquierda"
+  if (e.which === 37 && snake.dx === 0) {
+    snake.dx = -grid;
+    snake.dy = 0;
+  }
+  // Presiona tecla "arriba"
+  else if (e.which === 38 && snake.dy === 0) {
+    snake.dy = -grid;
+    snake.dx = 0;
+  }
+  // Presiona tecla "derecha"
+  else if (e.which === 39 && snake.dx === 0) {
+    snake.dx = grid;
+    snake.dy = 0;
+  }
+  // Presiona tecla "abajo"
+  else if (e.which === 40 && snake.dy === 0) {
+    snake.dy = grid;
+    snake.dx = 0;
+  }
+});
+// Inicia el Juego
+requestAnimationFrame(loop);
+</script>
+<br>
+<div class="soc" align="center" width="10%"> <p align="center" style="color:black">
+Siguenos en ... </br>
+<a href="https://www.facebook.com/innovacien" target=_blank><img src="http://innovacien.org/html/images/fb.png" width="20px"></a> 
+<a href="https://www.instagram.com/innovacien/" target=_blank><img src="http://innovacien.org/html/images/instagram.png" width="20px"></a>
+<a href="https://twitter.com/innovacien" target=_blank><img src="http://innovacien.org/html/images/twitter.png" width="35px"></a>
+</p></div> 
+
+</div>
+</body>
+</html>
